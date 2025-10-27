@@ -7,8 +7,8 @@
   <style>
     body {
       font-family: "Noto Sans KR", sans-serif;
-      background: #000; /* 배경 검정색 */
-      color: #fff;      /* 기본 글씨 흰색 */
+      background: #000;
+      color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -16,50 +16,46 @@
       height: 100vh;
       margin: 0;
     }
-
     h1 {
       margin-bottom: 10px;
-      font-size: 20px;
-      color: #fff; /* 제목 흰색 */
+      font-size: 24px;
+      color: #fff;
     }
-
     .player {
-      background: #000; /* 플레이어 배경 검정 */
-      border-radius: 10px;
-      padding: 10px 20px;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      background: rgba(0,0,0,0.7);
+      border-radius: 12px;
+      padding: 15px 20px;
       text-align: center;
     }
-
-    button {
+    .player button {
       margin: 5px;
-      padding: 6px 12px;
+      padding: 8px 15px;
       font-size: 14px;
-      border: 1px solid #fff;
-      border-radius: 6px;
-      background: #000; /* 버튼 배경 검정 */
-      color: #fff;      /* 버튼 글씨 흰색 */
+      border: none;
+      border-radius: 5px;
+      background: #ff007f; /* 쨍한 핑크 */
+      color: #fff;
       cursor: pointer;
     }
-
-    button:hover {
-      background: #222; /* 마우스 올리면 회색 */
+    .player button:hover {
+      background: #ff33aa; /* hover 시 밝은 핑크 */
     }
-
     .progress {
       width: 250px;
-      height: 5px;
+      height: 6px;
       background: #333;
       border-radius: 3px;
-      margin-top: 8px;
+      margin-top: 12px;
       overflow: hidden;
     }
-
     .progress-bar {
       height: 100%;
       width: 0%;
-      background: #fff; /* 진행바 흰색 */
+      background: #ff007f;
       transition: width 0.2s linear;
+    }
+    #title {
+      margin-bottom: 8px;
     }
   </style>
 </head>
