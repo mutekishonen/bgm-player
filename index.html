@@ -1,78 +1,58 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BGM Player</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini BGM Player</title>
   <style>
     body {
+      margin: 0;
       font-family: "Noto Sans KR", sans-serif;
-      background: #000;
+      background: transparent;
       color: #fff;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    h1 {
-      margin-bottom: 10px;
-      font-size: 24px;
-      color: #fff;
+      height: 70px;
     }
     .player {
-      background: rgba(0,0,0,0.7);
-      border-radius: 12px;
-      padding: 15px 20px;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0,0,0,0.6);
+      padding: 5px 10px;
+      border-radius: 8px;
     }
     .player button {
-      margin: 5px;
-      padding: 8px 15px;
-      font-size: 14px;
+      background: #ff7f50;
       border: none;
-      border-radius: 5px;
-      background: #ff007f; /* 쨍한 핑크 */
-      color: #fff;
+      border-radius: 4px;
+      padding: 5px 10px;
       cursor: pointer;
+      color: white;
+      font-size: 14px;
     }
     .player button:hover {
-      background: #ff33aa; /* hover 시 밝은 핑크 */
-    }
-    .progress {
-      width: 250px;
-      height: 6px;
-      background: #333;
-      border-radius: 3px;
-      margin-top: 12px;
-      overflow: hidden;
-    }
-    .progress-bar {
-      height: 100%;
-      width: 0%;
-      background: #ff007f;
-      transition: width 0.2s linear;
+      background: #ff9966;
     }
     #title {
-      margin-bottom: 8px;
+      flex: 1;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   </style>
 </head>
 <body>
-  <h1>🎵 My BGM Player</h1>
   <div class="player">
-    <p id="title">로딩 중...</p>
-    <audio id="audio" autoplay></audio>
-    <div>
-      <button id="prev">⏮ 이전</button>
-      <button id="play">⏯ 재생 / 일시정지</button>
-      <button id="next">⏭ 다음</button>
-    </div>
-    <div class="progress">
-      <div class="progress-bar" id="progress-bar"></div>
-    </div>
+    <button id="prev">⏮</button>
+    <button id="play">⏯</button>
+    <button id="next">⏭</button>
+    <div id="title">로딩 중...</div>
   </div>
+
+  <audio id="audio" autoplay></audio>
 
   <script>
     const playlist = [
@@ -85,8 +65,7 @@
     ];
 
     const audio = document.getElementById("audio");
-    const title = document.getElementById("title");
-    const progressBar = document.getElementById("progress-bar");
+    const titleEl = document.getElementById("title");
     const playBtn = document.getElementById("play");
     const nextBtn = document.getElementById("next");
     const prevBtn = document.getElementById("prev");
@@ -96,7 +75,7 @@
 
     function loadSong(index) {
       const song = playlist[index];
-      title.textContent = song.title;
+      titleEl.textContent = song.title;
       audio.src = song.url;
       audio.currentTime = currentTime;
       audio.play();
@@ -109,7 +88,7 @@
     });
 
     playBtn.addEventListener("click", () => {
-      if (audio.paused) audio.play();
+      if(audio.paused) audio.play();
       else audio.pause();
     });
 
@@ -125,11 +104,6 @@
       loadSong(currentIndex);
     });
 
-    audio.addEventListener("timeupdate", () => {
-      const percent = (audio.currentTime / audio.duration) * 100;
-      progressBar.style.width = percent + "%";
-    });
-
     window.addEventListener("beforeunload", () => {
       localStorage.setItem("bgmIndex", currentIndex);
       localStorage.setItem("bgmTime", audio.currentTime);
@@ -141,5 +115,4 @@
   </script>
 </body>
 </html>
-
 
