@@ -1,10 +1,21 @@
 <!-- 티스토리용 세련된 미니 BGM 플레이어 -->
-<div id="tistory-bgm-player" style="position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); color: white; padding: 8px 12px; border-radius: 14px; font-family: 'Noto Sans KR', sans-serif; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 9999;">
-  <span id="bgm-title" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">로딩 중...</span>
+<div id="tistory-bgm-player" style="
+  position: fixed; bottom: 20px; right: 20px;
+  background: rgba(0,0,0,0.6); color: white;
+  padding: 8px 12px; border-radius: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  z-index: 9999;
+">
+  <span id="bgm-title" style="
+    max-width: 180px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  ">로딩 중...</span>
   <button id="bgm-prev" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏮</button>
-  <button id="bgm-play" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏯</button>
+  <button id="bgm-play" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">🔇</button>
   <button id="bgm-next" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏭</button>
-  <audio id="bgm-audio"></audio>
+  <audio id="bgm-audio" muted autoplay></audio>
 </div>
 
 <script>
@@ -24,45 +35,50 @@ const nextBtn = document.getElementById("bgm-next");
 const prevBtn = document.getElementById("bgm-prev");
 
 let currentIndex = parseInt(localStorage.getItem("bgmIndex")) || 0;
-let currentTime = parseFloat(localStorage.getItem("bgmTime")) || 0;
 
 function loadSong(index) {
   const song = playlist[index];
   titleEl.textContent = song.title;
   audio.src = song.url;
-  audio.currentTime = currentTime;
-  audio.play();
+  audio.play().catch(() => console.log("자동재생 제한됨 (무음 상태에서 시작)"));
 }
 
-audio.addEventListener("ended", () => {
-  currentIndex = (currentIndex + 1) % playlist.length;
-  currentTime = 0;
-  loadSong(currentIndex);
-});
+function updateIcon() {
+  if (audio.paused) playBtn.textContent = "▶";
+  else if (audio.muted) playBtn.textContent = "🔇";
+  else playBtn.textContent = "🔊";
+}
 
 playBtn.addEventListener("click", () => {
-  if (audio.paused) audio.play();
-  else audio.pause();
+  if (audio.muted) {
+    audio.muted = false;
+    updateIcon();
+  } else if (audio.paused) {
+    audio.play();
+    updateIcon();
+  } else {
+    audio.pause();
+    updateIcon();
+  }
 });
 
 nextBtn.addEventListener("click", () => {
   currentIndex = (currentIndex + 1) % playlist.length;
-  currentTime = 0;
   loadSong(currentIndex);
 });
 
 prevBtn.addEventListener("click", () => {
   currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-  currentTime = 0;
   loadSong(currentIndex);
 });
 
-window.addEventListener("beforeunload", () => {
-  localStorage.setItem("bgmIndex", currentIndex);
-  localStorage.setItem("bgmTime", audio.currentTime);
+audio.addEventListener("ended", () => {
+  currentIndex = (currentIndex + 1) % playlist.length;
+  loadSong(currentIndex);
 });
 
 window.addEventListener("load", () => {
   loadSong(currentIndex);
+  updateIcon();
 });
 </script>
