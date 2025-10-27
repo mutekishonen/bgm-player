@@ -1,74 +1,96 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini BGM Player</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BGM Player</title>
   <style>
     body {
-      background: transparent;
       font-family: "Noto Sans KR", sans-serif;
+      background: #000; /* 배경 검정색 */
+      color: #fff;      /* 기본 글씨 흰색 */
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       height: 100vh;
       margin: 0;
     }
-    .mini-player {
-      background: rgba(255, 255, 255, 0.1); /* 투명 배경 */
-      backdrop-filter: blur(6px); /* 배경 흐림 */
-      padding: 8px 16px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.3);
-      color: #fff;
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 20px;
+      color: #fff; /* 제목 흰색 */
+    }
+
+    .player {
+      background: #000; /* 플레이어 배경 검정 */
+      border-radius: 10px;
+      padding: 10px 20px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      text-align: center;
+    }
+
+    button {
+      margin: 5px;
+      padding: 6px 12px;
       font-size: 14px;
-    }
-    .mini-player button {
-      background: #ff7f50; /* 포인트 색상 */
-      border: none;
+      border: 1px solid #fff;
       border-radius: 6px;
-      padding: 5px 10px;
+      background: #000; /* 버튼 배경 검정 */
+      color: #fff;      /* 버튼 글씨 흰색 */
       cursor: pointer;
-      font-weight: bold;
-      transition: 0.2s;
-      color: #fff;
     }
-    .mini-player button:hover {
-      background: #ff9966;
-      transform: scale(1.1);
+
+    button:hover {
+      background: #222; /* 마우스 올리면 회색 */
     }
-    #title {
-      max-width: 200px;
+
+    .progress {
+      width: 250px;
+      height: 5px;
+      background: #333;
+      border-radius: 3px;
+      margin-top: 8px;
       overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #fff; /* 진행바 흰색 */
+      transition: width 0.2s linear;
     }
   </style>
 </head>
 <body>
-  <div class="mini-player">
-    <button id="prev">⏮</button>
-    <button id="play">⏯</button>
-    <button id="next">⏭</button>
-    <span id="title">로딩 중...</span>
+  <h1>🎵 My BGM Player</h1>
+  <div class="player">
+    <p id="title">로딩 중...</p>
+    <audio id="audio" autoplay></audio>
+    <div>
+      <button id="prev">⏮ 이전</button>
+      <button id="play">⏯ 재생 / 일시정지</button>
+      <button id="next">⏭ 다음</button>
+    </div>
+    <div class="progress">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
   </div>
-  <audio id="audio" autoplay></audio>
 
   <script>
     const playlist = [
-      { title: "GAL's Life! (feat. KOTONEHOUSE) - DENONBU", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/GAL's%20Life!%20(feat.%20KOTONOHOUSE....mp3" },
+      { title: "GAL's Life! (feat. KOTONEHOUSE) - DENONBU", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/GAL's Life! (feat. KOTONOHOUSE....mp3" },
       { title: "DASH - NMIXX", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/DASH-1-NMIXX.mp3" },
-      { title: "Password - 트리플에스", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Password-1-%ED%8A%B8%EB%A6%AC%ED%94%8C%EC%97%90%EC%8A%A4.mp3" },
-      { title: "SOMETHING AIN’T RIGHT - XG", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/SOMETHING%20AIN'T%20RIGHT-1-XG.mp3" },
-      { title: "Lucky Strike - Maroon 5", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Lucky%20Strike-4-Maroon%205.mp3" },
-      { title: "プレイ - Giga", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/%E3%83%97%E3%83%AC%E3%82%A4-1-Giga.mp3" }
+      { title: "Password - 트리플에스", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Password-1-트리플에스.mp3" },
+      { title: "SOMETHING AIN’T RIGHT - XG", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/SOMETHING AIN'T RIGHT-1-XG.mp3" },
+      { title: "Lucky Strike - Maroon 5", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Lucky Strike-4-Maroon 5.mp3" },
+      { title: "プレイ - Giga", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/プレイ-1-Giga.mp3" }
     ];
 
     const audio = document.getElementById("audio");
     const title = document.getElementById("title");
+    const progressBar = document.getElementById("progress-bar");
     const playBtn = document.getElementById("play");
     const nextBtn = document.getElementById("next");
     const prevBtn = document.getElementById("prev");
@@ -91,7 +113,7 @@
     });
 
     playBtn.addEventListener("click", () => {
-      if(audio.paused) audio.play();
+      if (audio.paused) audio.play();
       else audio.pause();
     });
 
@@ -107,6 +129,11 @@
       loadSong(currentIndex);
     });
 
+    audio.addEventListener("timeupdate", () => {
+      const percent = (audio.currentTime / audio.duration) * 100;
+      progressBar.style.width = percent + "%";
+    });
+
     window.addEventListener("beforeunload", () => {
       localStorage.setItem("bgmIndex", currentIndex);
       localStorage.setItem("bgmTime", audio.currentTime);
@@ -118,4 +145,5 @@
   </script>
 </body>
 </html>
+
 
