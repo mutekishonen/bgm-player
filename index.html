@@ -1,117 +1,69 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini BGM Player</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Noto Sans KR", sans-serif;
-      background: transparent;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 70px;
-    }
-    .player {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(0,0,0,0.6);
-      padding: 5px 10px;
-      border-radius: 8px;
-    }
-    .player button {
-      background: #ff7f50;
-      border: none;
-      border-radius: 4px;
-      padding: 5px 10px;
-      cursor: pointer;
-      color: white;
-      font-size: 14px;
-    }
-    .player button:hover {
-      background: #ff9966;
-    }
-    #title {
-      flex: 1;
-      font-size: 14px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  </style>
-</head>
-<body>
-  <div class="player">
-    <button id="prev">⏮</button>
-    <button id="play">⏯</button>
-    <button id="next">⏭</button>
-    <div id="title">로딩 중...</div>
-  </div>
+<!-- 티스토리용 세련된 미니 BGM 플레이어 -->
+<div id="tistory-bgm-player" style="position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); color: white; padding: 8px 12px; border-radius: 14px; font-family: 'Noto Sans KR', sans-serif; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 9999;">
+  <span id="bgm-title" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">로딩 중...</span>
+  <button id="bgm-prev" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏮</button>
+  <button id="bgm-play" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏯</button>
+  <button id="bgm-next" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏭</button>
+  <audio id="bgm-audio"></audio>
+</div>
 
-  <audio id="audio" autoplay></audio>
+<script>
+const playlist = [
+  { title: "GAL's Life! (feat. KOTONEHOUSE) - DENONBU", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/GAL's Life! (feat. KOTONOHOUSE....mp3" },
+  { title: "DASH - NMIXX", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/DASH-1-NMIXX.mp3" },
+  { title: "Password - 트리플에스", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Password-1-트리플에스.mp3" },
+  { title: "SOMETHING AIN’T RIGHT - XG", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/SOMETHING AIN'T RIGHT-1-XG.mp3" },
+  { title: "Lucky Strike - Maroon 5", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Lucky Strike-4-Maroon 5.mp3" },
+  { title: "プレイ - Giga", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/プレイ-1-Giga.mp3" }
+];
 
-  <script>
-    const playlist = [
-      { title: "GAL's Life! (feat. KOTONEHOUSE) - DENONBU", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/GAL's Life! (feat. KOTONOHOUSE....mp3" },
-      { title: "DASH - NMIXX", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/DASH-1-NMIXX.mp3" },
-      { title: "Password - 트리플에스", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Password-1-트리플에스.mp3" },
-      { title: "SOMETHING AIN’T RIGHT - XG", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/SOMETHING AIN'T RIGHT-1-XG.mp3" },
-      { title: "Lucky Strike - Maroon 5", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Lucky Strike-4-Maroon 5.mp3" },
-      { title: "プレイ - Giga", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/プレイ-1-Giga.mp3" }
-    ];
+const audio = document.getElementById("bgm-audio");
+const titleEl = document.getElementById("bgm-title");
+const playBtn = document.getElementById("bgm-play");
+const nextBtn = document.getElementById("bgm-next");
+const prevBtn = document.getElementById("bgm-prev");
 
-    const audio = document.getElementById("audio");
-    const titleEl = document.getElementById("title");
-    const playBtn = document.getElementById("play");
-    const nextBtn = document.getElementById("next");
-    const prevBtn = document.getElementById("prev");
+let currentIndex = parseInt(localStorage.getItem("bgmIndex")) || 0;
+let currentTime = parseFloat(localStorage.getItem("bgmTime")) || 0;
 
-    let currentIndex = parseInt(localStorage.getItem("bgmIndex")) || 0;
-    let currentTime = parseFloat(localStorage.getItem("bgmTime")) || 0;
+function loadSong(index) {
+  const song = playlist[index];
+  titleEl.textContent = song.title;
+  audio.src = song.url;
+  audio.currentTime = currentTime;
+  audio.play();
+}
 
-    function loadSong(index) {
-      const song = playlist[index];
-      titleEl.textContent = song.title;
-      audio.src = song.url;
-      audio.currentTime = currentTime;
-      audio.play();
-    }
+audio.addEventListener("ended", () => {
+  currentIndex = (currentIndex + 1) % playlist.length;
+  currentTime = 0;
+  loadSong(currentIndex);
+});
 
-    audio.addEventListener("ended", () => {
-      currentIndex = (currentIndex + 1) % playlist.length;
-      currentTime = 0;
-      loadSong(currentIndex);
-    });
+playBtn.addEventListener("click", () => {
+  if (audio.paused) audio.play();
+  else audio.pause();
+});
 
-    playBtn.addEventListener("click", () => {
-      if(audio.paused) audio.play();
-      else audio.pause();
-    });
+nextBtn.addEventListener("click", () => {
+  currentIndex = (currentIndex + 1) % playlist.length;
+  currentTime = 0;
+  loadSong(currentIndex);
+});
 
-    nextBtn.addEventListener("click", () => {
-      currentIndex = (currentIndex + 1) % playlist.length;
-      currentTime = 0;
-      loadSong(currentIndex);
-    });
+prevBtn.addEventListener("click", () => {
+  currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+  currentTime = 0;
+  loadSong(currentIndex);
+});
 
-    prevBtn.addEventListener("click", () => {
-      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-      currentTime = 0;
-      loadSong(currentIndex);
-    });
+window.addEventListener("beforeunload", () => {
+  localStorage.setItem("bgmIndex", currentIndex);
+  localStorage.setItem("bgmTime", audio.currentTime);
+});
 
-    window.addEventListener("beforeunload", () => {
-      localStorage.setItem("bgmIndex", currentIndex);
-      localStorage.setItem("bgmTime", audio.currentTime);
-    });
+window.addEventListener("load", () => {
+  loadSong(currentIndex);
+});
+</script>
 
-    window.addEventListener("load", () => {
-      loadSong(currentIndex);
-    });
-  </script>
-</body>
-</html>
