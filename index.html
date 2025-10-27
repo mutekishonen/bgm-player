@@ -1,113 +1,121 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini BGM Player</title>
-<style>
-  #bgm-player {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    background: rgba(30, 30, 30, 0.95);
-    color: white;
-    font-family: "Noto Sans KR", sans-serif;
-    padding: 10px 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px #000;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 9999;
-  }
-  #bgm-player button {
-    background: #ff7f50;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  #bgm-player button:hover { background: #ff9966; }
-  #bgm-title {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini BGM Player</title>
+  <style>
+    body {
+      background: transparent;
+      font-family: "Noto Sans KR", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .mini-player {
+      background: rgba(255, 255, 255, 0.1); /* 투명 배경 */
+      backdrop-filter: blur(6px); /* 배경 흐림 */
+      padding: 8px 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 14px;
+    }
+    .mini-player button {
+      background: #ff7f50; /* 포인트 색상 */
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+      color: #fff;
+    }
+    .mini-player button:hover {
+      background: #ff9966;
+      transform: scale(1.1);
+    }
+    #title {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
 </head>
 <body>
+  <div class="mini-player">
+    <button id="prev">⏮</button>
+    <button id="play">⏯</button>
+    <button id="next">⏭</button>
+    <span id="title">로딩 중...</span>
+  </div>
+  <audio id="audio" autoplay></audio>
 
-<div id="bgm-player">
-  <button id="prev">⏮</button>
-  <button id="play">⏯</button>
-  <button id="next">⏭</button>
-  <span id="bgm-title">로딩 중...</span>
-</div>
+  <script>
+    const playlist = [
+      { title: "GAL's Life! (feat. KOTONEHOUSE) - DENONBU", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/GAL's%20Life!%20(feat.%20KOTONOHOUSE....mp3" },
+      { title: "DASH - NMIXX", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/DASH-1-NMIXX.mp3" },
+      { title: "Password - 트리플에스", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Password-1-%ED%8A%B8%EB%A6%AC%ED%94%8C%EC%97%90%EC%8A%A4.mp3" },
+      { title: "SOMETHING AIN’T RIGHT - XG", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/SOMETHING%20AIN'T%20RIGHT-1-XG.mp3" },
+      { title: "Lucky Strike - Maroon 5", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Lucky%20Strike-4-Maroon%205.mp3" },
+      { title: "プレイ - Giga", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/%E3%83%97%E3%83%AC%E3%82%A4-1-Giga.mp3" }
+    ];
 
-<audio id="audio" autoplay></audio>
+    const audio = document.getElementById("audio");
+    const title = document.getElementById("title");
+    const playBtn = document.getElementById("play");
+    const nextBtn = document.getElementById("next");
+    const prevBtn = document.getElementById("prev");
 
-<script>
-const playlist = [
-  { title: "GAL's Life! (feat. KOTONEHOUSE) - DENONBU", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/GAL's Life! (feat. KOTONOHOUSE....mp3" },
-  { title: "DASH - NMIXX", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/DASH-1-NMIXX.mp3" },
-  { title: "Password - 트리플에스", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Password-1-트리플에스.mp3" },
-  { title: "SOMETHING AIN’T RIGHT - XG", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/SOMETHING AIN'T RIGHT-1-XG.mp3" },
-  { title: "Lucky Strike - Maroon 5", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/Lucky Strike-4-Maroon 5.mp3" },
-  { title: "プレイ - Giga", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/プレイ-1-Giga.mp3" }
-];
+    let currentIndex = parseInt(localStorage.getItem("bgmIndex")) || 0;
+    let currentTime = parseFloat(localStorage.getItem("bgmTime")) || 0;
 
-const audio = document.getElementById("audio");
-const titleElem = document.getElementById("bgm-title");
-const playBtn = document.getElementById("play");
-const nextBtn = document.getElementById("next");
-const prevBtn = document.getElementById("prev");
+    function loadSong(index) {
+      const song = playlist[index];
+      title.textContent = song.title;
+      audio.src = song.url;
+      audio.currentTime = currentTime;
+      audio.play();
+    }
 
-let currentIndex = parseInt(localStorage.getItem("bgmIndex")) || 0;
-let currentTime = parseFloat(localStorage.getItem("bgmTime")) || 0;
+    audio.addEventListener("ended", () => {
+      currentIndex = (currentIndex + 1) % playlist.length;
+      currentTime = 0;
+      loadSong(currentIndex);
+    });
 
-function loadSong(index) {
-  const song = playlist[index];
-  audio.src = song.url;
-  audio.currentTime = currentTime;
-  titleElem.textContent = song.title;
-  audio.play().catch(()=>{}); // 자동재생 차단 대응
-}
+    playBtn.addEventListener("click", () => {
+      if(audio.paused) audio.play();
+      else audio.pause();
+    });
 
-audio.addEventListener("ended", () => {
-  currentIndex = (currentIndex + 1) % playlist.length;
-  currentTime = 0;
-  loadSong(currentIndex);
-});
+    nextBtn.addEventListener("click", () => {
+      currentIndex = (currentIndex + 1) % playlist.length;
+      currentTime = 0;
+      loadSong(currentIndex);
+    });
 
-playBtn.addEventListener("click", () => {
-  if(audio.paused) audio.play();
-  else audio.pause();
-});
+    prevBtn.addEventListener("click", () => {
+      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+      currentTime = 0;
+      loadSong(currentIndex);
+    });
 
-nextBtn.addEventListener("click", () => {
-  currentIndex = (currentIndex + 1) % playlist.length;
-  currentTime = 0;
-  loadSong(currentIndex);
-});
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("bgmIndex", currentIndex);
+      localStorage.setItem("bgmTime", audio.currentTime);
+    });
 
-prevBtn.addEventListener("click", () => {
-  currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-  currentTime = 0;
-  loadSong(currentIndex);
-});
-
-window.addEventListener("beforeunload", () => {
-  localStorage.setItem("bgmIndex", currentIndex);
-  localStorage.setItem("bgmTime", audio.currentTime);
-});
-
-window.addEventListener("load", () => {
-  loadSong(currentIndex);
-});
-</script>
-
+    window.addEventListener("load", () => {
+      loadSong(currentIndex);
+    });
+  </script>
 </body>
 </html>
+
