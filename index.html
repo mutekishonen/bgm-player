@@ -27,21 +27,19 @@
     ">로딩 중...</div>
   </div>
 
-  <!-- 버튼들 -->
+  <!-- 버튼 -->
   <button id="bgm-prev" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏮</button>
-  <button id="bgm-play" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">🔇</button>
+  <button id="bgm-play" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏯</button>
   <button id="bgm-next" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏭</button>
-  <audio id="bgm-audio" muted autoplay></audio>
+  <audio id="bgm-audio"></audio>
 </div>
 
-<!-- 🎵 제목 스크롤 애니메이션 -->
+<!-- 제목 스크롤 & 파도 효과 -->
 <style>
 @keyframes scrollTitle {
   0% { transform: translateX(100%); }
   100% { transform: translateX(-100%); }
 }
-
-/* 파도 애니메이션 */
 @keyframes waveMotion {
   0% { transform: scaleY(1); }
   50% { transform: scaleY(2.2); }
@@ -76,62 +74,52 @@ const prevBtn = document.getElementById("bgm-prev");
 const bars = document.querySelectorAll(".bar");
 
 let currentIndex = parseInt(localStorage.getItem("bgmIndex")) || 0;
+let currentTime = parseFloat(localStorage.getItem("bgmTime")) || 0;
 
 function loadSong(index) {
   const song = playlist[index];
   titleEl.textContent = song.title;
   audio.src = song.url;
-  audio.play().catch(() => console.log("자동재생 제한됨 (무음으로 시작)"));
+  audio.currentTime = currentTime;
+  audio.play();
 }
 
-function updateIcon() {
-  if (audio.paused) playBtn.textContent = "▶";
-  else if (audio.muted) playBtn.textContent = "🔇";
-  else playBtn.textContent = "🔊";
-}
-
-function toggleWave(active) {
-  bars.forEach(bar => {
-    bar.style.animationPlayState = active ? "running" : "paused";
-    bar.style.opacity = active ? "1" : "0.4";
-  });
-}
+audio.addEventListener("ended", () => {
+  currentIndex = (currentIndex + 1) % playlist.length;
+  currentTime = 0;
+  loadSong(currentIndex);
+});
 
 playBtn.addEventListener("click", () => {
-  if (audio.muted) {
-    audio.muted = false;
-    updateIcon();
-  } else if (audio.paused) {
-    audio.play();
-    updateIcon();
-  } else {
-    audio.pause();
-    updateIcon();
-  }
+  if (audio.paused) audio.play();
+  else audio.pause();
 });
 
 nextBtn.addEventListener("click", () => {
   currentIndex = (currentIndex + 1) % playlist.length;
+  currentTime = 0;
   loadSong(currentIndex);
 });
 
 prevBtn.addEventListener("click", () => {
   currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+  currentTime = 0;
   loadSong(currentIndex);
 });
 
-audio.addEventListener("ended", () => {
-  currentIndex = (currentIndex + 1) % playlist.length;
-  loadSong(currentIndex);
+window.addEventListener("beforeunload", () => {
+  localStorage.setItem("bgmIndex", currentIndex);
+  localStorage.setItem("bgmTime", audio.currentTime);
 });
 
-audio.addEventListener("play", () => toggleWave(true));
-audio.addEventListener("pause", () => toggleWave(false));
+// 파도 효과 on/off
+audio.addEventListener("play", () => bars.forEach(b => b.style.animationPlayState = "running"));
+audio.addEventListener("pause", () => bars.forEach(b => b.style.animationPlayState = "paused"));
 
 window.addEventListener("load", () => {
   loadSong(currentIndex);
-  updateIcon();
-  toggleWave(true);
+  bars.forEach(b => b.style.animationPlayState = "running");
 });
 </script>
+
 
