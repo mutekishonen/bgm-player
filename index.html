@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BGM Player</title>
+  <style>
+    body {
+      font-family: "Noto Sans KR", sans-serif;
+      background: linear-gradient(135deg, #222, #555);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 15px;
+      font-size: 28px;
+    }
+    .player {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px 30px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+      text-align: center;
+    }
+    button {
+      margin: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #ff7f50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #ff9966;
+    }
+    .progress {
+      width: 300px;
+      height: 8px;
+      background: #444;
+      border-radius: 4px;
+      margin-top: 15px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #00ffcc;
+      transition: width 0.2s linear;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 My BGM Player</h1>
+  <div class="player">
+    <p id="title">로딩 중...</p>
+    <audio id="audio" autoplay></audio>
+    <div>
+      <button id="prev">⏮ 이전</button>
+      <button id="play">⏯ 재생 / 일시정지</button>
+      <button id="next">⏭ 다음</button>
+    </div>
+    <div class="progress">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+  </div>
+
+  <script>
+    const playlist = [
+      { title: "DASH - NMIXX", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/dash.mp3" },
+      { title: "Password - 트리플에스", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/password.mp3" },
+      { title: "SOMETHING AIN’T RIGHT - XG", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/xg.mp3" },
+      { title: "Candy Thief", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/candythief.mp3" },
+      { title: "Lucky Strike - Maroon 5", url: "https://raw.githubusercontent.com/mutekishonen/bgm-player/main/luckystrike.mp3" }
+    ];
+
+    const audio = document.getElementById("audio");
+    const title = document.getElementById("title");
+    const progressBar = document.getElementById("progress-bar");
+    const playBtn = document.getElementById("play");
+    const nextBtn = document.getElementById("next");
+    const prevBtn = document.getElementById("prev");
+
+    let currentIndex = parseInt(localStorage.getItem("bgmIndex")) || 0;
+    let currentTime = parseFloat(localStorage.getItem("bgmTime")) || 0;
+
+    function loadSong(index) {
+      const song = playlist[index];
+      title.textContent = song.title;
+      audio.src = song.url;
+      audio.currentTime = currentTime;
+      audio.play();
+    }
+
+    audio.addEventListener("ended", () => {
+      currentIndex = (currentIndex + 1) % playlist.length;
+      currentTime = 0;
+      loadSong(currentIndex);
+    });
+
+    playBtn.addEventListener("click", () => {
+      if (audio.paused) audio.play();
+      else audio.pause();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      currentIndex = (currentIndex + 1) % playlist.length;
+      currentTime = 0;
+      loadSong(currentIndex);
+    });
+
+    prevBtn.addEventListener("click", () => {
+      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+      currentTime = 0;
+      loadSong(currentIndex);
+    });
+
+    audio.addEventListener("timeupdate", () => {
+      const percent = (audio.currentTime / audio.duration) * 100;
+      progressBar.style.width = percent + "%";
+    });
+
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("bgmIndex", currentIndex);
+      localStorage.setItem("bgmTime", audio.currentTime);
+    });
+
+    window.addEventListener("load", () => {
+      loadSong(currentIndex);
+    });
+  </script>
+</body>
+</html>
