@@ -2,58 +2,49 @@
 <div id="tistory-bgm-player" style="
   position: fixed; bottom: 20px; right: 20px;
   background: rgba(0,0,0,0.6); color: white;
-  padding: 10px 16px; border-radius: 18px;
+  padding: 8px 12px; border-radius: 14px;
   font-family: 'Noto Sans KR', sans-serif;
   display: flex; align-items: center; gap: 10px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-  z-index: 9999; width: 280px; overflow: hidden;
+  z-index: 9999;
+  width: 270px;
+  height: 60px;
+  overflow: hidden;
 ">
-  <!-- 파도 애니메이션 -->
-  <div id="wave" style="display: flex; align-items: flex-end; gap: 2px;">
-    <div class="bar" style="width: 2px; height: 6px; background: #fff; opacity: 0.8;"></div>
-    <div class="bar" style="width: 2px; height: 10px; background: #fff; opacity: 0.8;"></div>
-    <div class="bar" style="width: 2px; height: 14px; background: #fff; opacity: 0.8;"></div>
-    <div class="bar" style="width: 2px; height: 10px; background: #fff; opacity: 0.8;"></div>
-    <div class="bar" style="width: 2px; height: 6px; background: #fff; opacity: 0.8;"></div>
-  </div>
 
-  <!-- 곡 제목 (스크롤 효과) -->
-  <div style="flex: 1; overflow: hidden;">
-    <div id="bgm-title" style="
-      white-space: nowrap;
-      display: inline-block;
+  <!-- 제목 스크롤 영역 -->
+  <div style="flex:1; overflow:hidden; white-space:nowrap;">
+    <span id="bgm-title" style="
+      display:inline-block;
       animation: scrollTitle 12s linear infinite;
-      font-size: 14px;
-    ">로딩 중...</div>
+      font-size:14px;
+    ">로딩 중...</span>
   </div>
 
-  <!-- 버튼 -->
+  <!-- 파도 애니메이션 -->
+  <div id="visualizer" style="display:flex; gap:2px; align-items:flex-end; height:16px;">
+    <div style="width:2px; height:6px; background:#fff; animation:wave 1s infinite ease-in-out alternate;"></div>
+    <div style="width:2px; height:10px; background:#fff; animation:wave 1s infinite ease-in-out alternate 0.2s;"></div>
+    <div style="width:2px; height:14px; background:#fff; animation:wave 1s infinite ease-in-out alternate 0.4s;"></div>
+  </div>
+
+  <!-- 컨트롤 -->
   <button id="bgm-prev" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏮</button>
   <button id="bgm-play" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏯</button>
   <button id="bgm-next" style="background:none; border:none; color:white; font-size:16px; cursor:pointer;">⏭</button>
   <audio id="bgm-audio"></audio>
 </div>
 
-<!-- 제목 스크롤 & 파도 효과 -->
 <style>
 @keyframes scrollTitle {
-  0% { transform: translateX(100%); }
+  0% { transform: translateX(0); }
   100% { transform: translateX(-100%); }
 }
-@keyframes waveMotion {
-  0% { transform: scaleY(1); }
-  50% { transform: scaleY(2.2); }
-  100% { transform: scaleY(1); }
+
+@keyframes wave {
+  from { height: 4px; opacity:0.6; }
+  to { height: 16px; opacity:1; }
 }
-.bar {
-  animation: waveMotion 1s ease-in-out infinite;
-  transform-origin: bottom;
-}
-.bar:nth-child(1) { animation-delay: 0s; }
-.bar:nth-child(2) { animation-delay: 0.1s; }
-.bar:nth-child(3) { animation-delay: 0.2s; }
-.bar:nth-child(4) { animation-delay: 0.3s; }
-.bar:nth-child(5) { animation-delay: 0.4s; }
 </style>
 
 <script>
@@ -71,55 +62,74 @@ const titleEl = document.getElementById("bgm-title");
 const playBtn = document.getElementById("bgm-play");
 const nextBtn = document.getElementById("bgm-next");
 const prevBtn = document.getElementById("bgm-prev");
-const bars = document.querySelectorAll(".bar");
+const visualizer = document.getElementById("visualizer");
 
 let currentIndex = parseInt(localStorage.getItem("bgmIndex")) || 0;
 let currentTime = parseFloat(localStorage.getItem("bgmTime")) || 0;
+let wasPlaying = localStorage.getItem("bgmPlaying") === "true";
+let wasMuted = localStorage.getItem("bgmMuted") === "true";
 
 function loadSong(index) {
   const song = playlist[index];
   titleEl.textContent = song.title;
   audio.src = song.url;
   audio.currentTime = currentTime;
-  audio.play();
+  audio.muted = wasMuted;
+  if (wasPlaying) {
+    audio.play().catch(()=>{});
+    visualizer.style.opacity = "1";
+  } else {
+    visualizer.style.opacity = "0.3";
+  }
 }
 
-audio.addEventListener("ended", () => {
-  currentIndex = (currentIndex + 1) % playlist.length;
-  currentTime = 0;
-  loadSong(currentIndex);
-});
-
 playBtn.addEventListener("click", () => {
-  if (audio.paused) audio.play();
-  else audio.pause();
+  if (audio.paused) {
+    audio.play();
+    wasPlaying = true;
+    visualizer.style.opacity = "1";
+  } else {
+    audio.pause();
+    wasPlaying = false;
+    visualizer.style.opacity = "0.3";
+  }
+  saveState();
 });
 
 nextBtn.addEventListener("click", () => {
   currentIndex = (currentIndex + 1) % playlist.length;
   currentTime = 0;
   loadSong(currentIndex);
+  saveState();
 });
 
 prevBtn.addEventListener("click", () => {
   currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
   currentTime = 0;
   loadSong(currentIndex);
+  saveState();
 });
 
-window.addEventListener("beforeunload", () => {
+audio.addEventListener("ended", () => {
+  currentIndex = (currentIndex + 1) % playlist.length;
+  currentTime = 0;
+  loadSong(currentIndex);
+  saveState();
+});
+
+function saveState() {
   localStorage.setItem("bgmIndex", currentIndex);
   localStorage.setItem("bgmTime", audio.currentTime);
-});
+  localStorage.setItem("bgmPlaying", !audio.paused);
+  localStorage.setItem("bgmMuted", audio.muted);
+}
 
-// 파도 효과 on/off
-audio.addEventListener("play", () => bars.forEach(b => b.style.animationPlayState = "running"));
-audio.addEventListener("pause", () => bars.forEach(b => b.style.animationPlayState = "paused"));
+window.addEventListener("beforeunload", saveState);
 
 window.addEventListener("load", () => {
   loadSong(currentIndex);
-  bars.forEach(b => b.style.animationPlayState = "running");
 });
 </script>
+
 
 
